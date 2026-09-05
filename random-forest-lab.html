@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interactive Random Forest Lab</title>
+<style>
+:root {
+  --bg: #f5f7fb; --card: #ffffff; --text: #172033; --muted: #64748b;
+  --accent: #2563eb; --accent2: #1d4ed8; --border: #dbe3ef;
+  --danger: #dc2626; --success: #15803d;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+header { background: linear-gradient(135deg, #1d4ed8, #2563eb); color:white; padding:34px 20px; text-align:center; }
+header h1 { margin:0 0 8px; font-size: clamp(1.6rem, 4vw, 2.5rem); }
+header p { margin:0 auto; max-width:750px; opacity:0.92; line-height:1.55; }
+.container { max-width:1180px; margin:28px auto; padding:0 16px 30px; }
+.grid { display:grid; grid-template-columns: 340px 1fr; gap:20px; align-items:start; }
+.card { background: var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow: 0 8px 30px rgba(30,64,175,0.06); }
+h2,h3 { margin-top:0; }
+label { display:block; font-weight:650; margin:12px 0 6px; }
+input[type="number"], input[type="text"], select { width:100%; padding:10px 12px; border-radius:9px; border:1px solid #cbd5e1; font-size:1rem; }
+input[type="range"] { width:100%; }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+button { border:0; border-radius:9px; padding:10px 13px; font-size:0.95rem; font-weight:700; cursor:pointer; }
+.primary { width:100%; margin-top:12px; background: var(--accent); color:white; }
+.primary:hover { background: var(--accent2); }
+.secondary { background:#e8eefc; color:#1e3a8a; }
+.danger { background:#fee2e2; color: var(--danger); }
+.button-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.button-row button { flex:1; }
+.equation { margin:16px 0; padding:15px; border-radius:12px; background:#eff6ff; text-align:center; font-size:1.15rem; font-weight:800; color:#1e40af; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+.stat { background:#f8fafc; border:1px solid var(--border); border-radius:11px; padding:12px; text-align:center; font-size:0.85rem;}
+.stat strong { display:block; font-size:1.15rem; margin-top:4px; }
+canvas { width:100%; height:420px; border-radius:12px; background:white; border:1px solid var(--border); cursor:crosshair; }
+.hint { color: var(--muted); line-height:1.5; font-size:0.92rem; }
+.points { max-height:200px; overflow-y:auto; margin-top:14px; border-top:1px solid var(--border); }
+.point-item { display:flex; justify-content:space-between; gap:10px; padding:8px 2px; border-bottom:1px solid #eef2f7; font-size:0.88rem; }
+.remove { border:0; background:transparent; color:var(--danger); padding:0; font-weight:700; cursor:pointer; }
+.prediction-result { margin-top:10px; min-height:24px; font-weight:750; color: var(--success); }
+.concept { margin-top:20px; line-height:1.65; }
+.formula-box { padding:14px; border-left:4px solid var(--accent); background:#f8fafc; border-radius:8px; }
+footer { text-align:center; color:var(--muted); padding:20px; font-size:0.9rem; }
+table.matrix { border-collapse:collapse; width:100%; font-size:0.85rem; }
+table.matrix th, table.matrix td { border:1px solid var(--border); padding:6px; text-align:center; }
+table.matrix input[type="number"] { padding:4px; text-align:center; }
+table.rules { width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:10px;}
+table.rules th, table.rules td { border-bottom:1px solid var(--border); padding:7px 6px; text-align:left; }
+.legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:0.85rem; }
+.legend span.dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; }
+.class-btns { display:flex; gap:8px; margin-top:6px; }
+.class-btns button { flex:1; opacity:0.55; }
+.class-btns button.active { opacity:1; box-shadow: 0 0 0 2px #1e293b inset; }
+@media (max-width:850px){ .grid{ grid-template-columns:1fr; } canvas{ height:340px; } }
+@media (max-width:500px){ .stats{ grid-template-columns:1fr; } }
+#classA{background:#2563eb;color:white;} #classB{background:#dc2626;color:white;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Interactive Random Forest Lab</h1>
+  <p>Train an ensemble of bootstrap-sampled decision trees and see how majority voting smooths out a single tree's jagged decision boundary.</p>
+</header>
+<main class="container">
+  <div class="grid">
+    <section class="card">
+      
+<h2>Add Labelled Points</h2>
+<p class="hint">Same setup as the single decision tree, but now many trees vote together.</p>
+<div class="class-btns">
+  <button id="classA" class="active" onclick="selectClass(0)">Class A</button>
+  <button id="classB" onclick="selectClass(1)">Class B</button>
+</div>
+<div class="button-row">
+  <button class="secondary" onclick="loadExample()">Load Example</button>
+  <button class="danger" onclick="clearPoints()">Clear</button>
+</div>
+
+<h3 style="margin-top:22px;">Forest Settings</h3>
+<label for="treesRange">Number of Trees: <span id="treesVal">9</span></label>
+<input id="treesRange" type="range" min="1" max="25" value="9" oninput="onTreesChange()">
+<label for="depthRange">Max Depth per Tree: <span id="depthVal">3</span></label>
+<input id="depthRange" type="range" min="1" max="5" value="3" oninput="onDepthChange()">
+<button class="primary" onclick="buildForest()">Build Forest</button>
+
+<h3 style="margin-top:22px;">Points (<span id="countLabel">0</span>)</h3>
+<div id="pointList" class="points"></div>
+
+    </section>
+    <section class="card">
+      
+<h2>Ensemble Decision Regions</h2>
+<div class="stats">
+  <div class="stat">Training Accuracy<strong id="acc">&mdash;</strong></div>
+  <div class="stat">Trees Trained<strong id="treesUsed">&mdash;</strong></div>
+  <div class="stat">Region Smoothness<strong id="smooth">&mdash;</strong></div>
+</div>
+<canvas id="chart"></canvas>
+<p class="hint">Each tree is trained on a random bootstrap sample of the points. The background shows the <b>majority vote</b> across all trees &mdash; notice how the boundary is smoother and less jagged than a single tree's.</p>
+
+    </section>
+  </div>
+  <section class="card concept">
+    
+<h2>What is a Random Forest?</h2>
+<p>A random forest is an ensemble of many decision trees. Two sources of randomness make the trees different from one another:</p>
+<div class="formula-box">
+  <strong>1. Bagging (Bootstrap Aggregating):</strong> each tree trains on a random sample of the data, drawn <i>with replacement</i>.<br><br>
+  <strong>2. Feature/threshold randomness:</strong> each split considers slightly randomised candidate thresholds, so trees don't all make identical decisions.
+</div>
+<p>For classification, the forest's final prediction is a <b>majority vote</b> across all trees. Averaging over many diverse, individually noisy trees reduces variance and typically gives a smoother, more accurate boundary than any single tree &mdash; try comparing this page's boundary shape to the single Decision Tree lab with the same points.</p>
+
+  </section>
+</main>
+<footer>Machine Learning Interactive Learning Page &bull; Random Forest</footer>
+<script>
+
+let points = [];
+let currentClass = 0;
+let forest = [];
+const colors = ["#2563eb","#dc2626"];
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+let plotBounds = null;
+
+function resizeCanvas(){
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio||1;
+  canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  draw();
+}
+window.addEventListener("resize", resizeCanvas);
+
+function selectClass(c){
+  currentClass=c;
+  document.querySelectorAll(".class-btns button").forEach((b,i)=>b.classList.toggle("active", i===c));
+}
+function onTreesChange(){ document.getElementById("treesVal").textContent = document.getElementById("treesRange").value; }
+function onDepthChange(){ document.getElementById("depthVal").textContent = document.getElementById("depthRange").value; }
+
+function gini(items){
+  if(!items.length) return 0;
+  const c0 = items.filter(p=>p.c===0).length, c1 = items.length-c0;
+  const p0=c0/items.length, p1=c1/items.length;
+  return 1-p0*p0-p1*p1;
+}
+function bestSplit(items){
+  let best=null;
+  ["x","y"].forEach(feat=>{
+    const vals=[...new Set(items.map(p=>p[feat]))].sort((a,b)=>a-b);
+    for(let i=0;i<vals.length-1;i++){
+      const jitter = (Math.random()-0.5)*(vals[i+1]-vals[i])*0.3;
+      const thresh=(vals[i]+vals[i+1])/2 + jitter;
+      const left=items.filter(p=>p[feat]<=thresh), right=items.filter(p=>p[feat]>thresh);
+      if(!left.length||!right.length) continue;
+      const weighted=(left.length*gini(left)+right.length*gini(right))/items.length;
+      if(!best||weighted<best.score) best={feat,thresh,score:weighted};
+    }
+  });
+  return best;
+}
+function majorityClass(items){
+  const c0=items.filter(p=>p.c===0).length;
+  return c0>=items.length-c0?0:1;
+}
+function buildNode(items, depth, maxDepth){
+  const g=gini(items);
+  if(g===0||depth>=maxDepth||items.length<2) return {leaf:true, cls:majorityClass(items)};
+  const split=bestSplit(items);
+  if(!split) return {leaf:true, cls:majorityClass(items)};
+  const left=items.filter(p=>p[split.feat]<=split.thresh);
+  const right=items.filter(p=>p[split.feat]>split.thresh);
+  if(!left.length||!right.length) return {leaf:true, cls:majorityClass(items)};
+  return {leaf:false, feat:split.feat, thresh:split.thresh, left:buildNode(left,depth+1,maxDepth), right:buildNode(right,depth+1,maxDepth)};
+}
+function predictTree(node, pt){
+  if(node.leaf) return node.cls;
+  return pt[node.feat] <= node.thresh ? predictTree(node.left,pt) : predictTree(node.right,pt);
+}
+function bootstrapSample(items){
+  const n=items.length, out=[];
+  for(let i=0;i<n;i++) out.push(items[Math.floor(Math.random()*n)]);
+  return out;
+}
+function forestPredict(forest, pt){
+  let votes=[0,0];
+  forest.forEach(t=> votes[predictTree(t,pt)]++ );
+  return votes[0]>=votes[1] ? 0 : 1;
+}
+
+function buildForest(){
+  if(points.length<2){ return; }
+  const nTrees = parseInt(document.getElementById("treesRange").value);
+  const maxDepth = parseInt(document.getElementById("depthRange").value);
+  forest = [];
+  for(let t=0;t<nTrees;t++){
+    forest.push(buildNode(bootstrapSample(points), 0, maxDepth));
+  }
+  const correct = points.filter(p => forestPredict(forest,p)===p.c).length;
+  document.getElementById("acc").textContent = (correct/points.length*100).toFixed(0)+"%";
+  document.getElementById("treesUsed").textContent = nTrees;
+  document.getElementById("smooth").textContent = nTrees>=10 ? "High" : (nTrees>=4 ? "Medium" : "Low");
+  draw();
+}
+
+function draw(){
+  const w=canvas.getBoundingClientRect().width, h=canvas.getBoundingClientRect().height;
+  ctx.clearRect(0,0,w,h);
+  plotBounds={left:10, top:10, w:w-20, h:h-20};
+
+  if(forest.length){
+    const cell=8;
+    for(let px=plotBounds.left; px<plotBounds.left+plotBounds.w; px+=cell){
+      for(let py=plotBounds.top; py<plotBounds.top+plotBounds.h; py+=cell){
+        const cls = forestPredict(forest, {x:px,y:py});
+        ctx.fillStyle=colors[cls]; ctx.globalAlpha=0.14;
+        ctx.fillRect(px,py,cell,cell);
+      }
+    }
+    ctx.globalAlpha=1;
+  }
+
+  points.forEach(p=>{
+    ctx.fillStyle=colors[p.c];
+    ctx.beginPath(); ctx.arc(p.x,p.y,7,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle="white"; ctx.lineWidth=2; ctx.stroke();
+  });
+  ctx.strokeStyle="#cbd5e1"; ctx.lineWidth=1; ctx.strokeRect(plotBounds.left,plotBounds.top,plotBounds.w,plotBounds.h);
+  document.getElementById("countLabel").textContent=points.length;
+  renderPointList();
+}
+
+function renderPointList(){
+  const list=document.getElementById("pointList");
+  if(!points.length){ list.innerHTML='<p class="hint">Click the graph to add points.</p>'; return; }
+  list.innerHTML = points.map((p,i)=>`
+    <div class="point-item"><span>Point ${i+1}: Class ${p.c===0?"A":"B"}</span>
+    <button class="remove" onclick="removePoint(${i})">Remove</button></div>
+  `).join("");
+}
+function removePoint(i){ points.splice(i,1); forest=[]; draw(); }
+function clearPoints(){ points=[]; forest=[]; draw(); }
+function loadExample(){
+  points=[
+    {x:90,y:80,c:0},{x:120,y:100,c:0},{x:80,y:120,c:0},{x:110,y:70,c:0},{x:60,y:100,c:0},{x:140,y:60,c:0},{x:100,y:140,c:0},
+    {x:300,y:280,c:1},{x:330,y:300,c:1},{x:280,y:260,c:1},{x:320,y:320,c:1},{x:350,y:290,c:1},{x:290,y:240,c:1},{x:310,y:250,c:1}
+  ];
+  forest=[]; draw();
+}
+
+canvas.addEventListener("click", function(event){
+  const rect=canvas.getBoundingClientRect();
+  const x=event.clientX-rect.left, y=event.clientY-rect.top;
+  points.push({x,y,c:currentClass});
+  forest=[]; draw();
+});
+
+requestAnimationFrame(resizeCanvas);
+
+</script>
+</body>
+</html>
