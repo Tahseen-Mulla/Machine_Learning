@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interactive Association Rule Mining Lab</title>
+<style>
+:root {
+  --bg: #f5f7fb; --card: #ffffff; --text: #172033; --muted: #64748b;
+  --accent: #2563eb; --accent2: #1d4ed8; --border: #dbe3ef;
+  --danger: #dc2626; --success: #15803d;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+header { background: linear-gradient(135deg, #1d4ed8, #2563eb); color:white; padding:34px 20px; text-align:center; }
+header h1 { margin:0 0 8px; font-size: clamp(1.6rem, 4vw, 2.5rem); }
+header p { margin:0 auto; max-width:750px; opacity:0.92; line-height:1.55; }
+.container { max-width:1180px; margin:28px auto; padding:0 16px 30px; }
+.grid { display:grid; grid-template-columns: 340px 1fr; gap:20px; align-items:start; }
+.card { background: var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow: 0 8px 30px rgba(30,64,175,0.06); }
+h2,h3 { margin-top:0; }
+label { display:block; font-weight:650; margin:12px 0 6px; }
+input[type="number"], input[type="text"], select { width:100%; padding:10px 12px; border-radius:9px; border:1px solid #cbd5e1; font-size:1rem; }
+input[type="range"] { width:100%; }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+button { border:0; border-radius:9px; padding:10px 13px; font-size:0.95rem; font-weight:700; cursor:pointer; }
+.primary { width:100%; margin-top:12px; background: var(--accent); color:white; }
+.primary:hover { background: var(--accent2); }
+.secondary { background:#e8eefc; color:#1e3a8a; }
+.danger { background:#fee2e2; color: var(--danger); }
+.button-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.button-row button { flex:1; }
+.equation { margin:16px 0; padding:15px; border-radius:12px; background:#eff6ff; text-align:center; font-size:1.15rem; font-weight:800; color:#1e40af; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+.stat { background:#f8fafc; border:1px solid var(--border); border-radius:11px; padding:12px; text-align:center; font-size:0.85rem;}
+.stat strong { display:block; font-size:1.15rem; margin-top:4px; }
+canvas { width:100%; height:420px; border-radius:12px; background:white; border:1px solid var(--border); cursor:crosshair; }
+.hint { color: var(--muted); line-height:1.5; font-size:0.92rem; }
+.points { max-height:200px; overflow-y:auto; margin-top:14px; border-top:1px solid var(--border); }
+.point-item { display:flex; justify-content:space-between; gap:10px; padding:8px 2px; border-bottom:1px solid #eef2f7; font-size:0.88rem; }
+.remove { border:0; background:transparent; color:var(--danger); padding:0; font-weight:700; cursor:pointer; }
+.prediction-result { margin-top:10px; min-height:24px; font-weight:750; color: var(--success); }
+.concept { margin-top:20px; line-height:1.65; }
+.formula-box { padding:14px; border-left:4px solid var(--accent); background:#f8fafc; border-radius:8px; }
+footer { text-align:center; color:var(--muted); padding:26px 20px 22px; font-size:0.9rem; border-top:1px solid var(--border); margin-top:10px; }
+footer .credit { font-size:0.92rem; color:#334155; line-height:1.6; }
+footer .credit .name { font-weight:700; color:#1e293b; }
+footer .counter { margin-top:10px; display:flex; justify-content:center; }
+footer .counter img { height:20px; border-radius:4px; }
+table.matrix { border-collapse:collapse; width:100%; font-size:0.85rem; }
+table.matrix th, table.matrix td { border:1px solid var(--border); padding:6px; text-align:center; }
+table.matrix input[type="number"] { padding:4px; text-align:center; }
+table.rules { width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:10px;}
+table.rules th, table.rules td { border-bottom:1px solid var(--border); padding:7px 6px; text-align:left; }
+.legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:0.85rem; }
+.legend span.dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; }
+.class-btns { display:flex; gap:8px; margin-top:6px; }
+.class-btns button { flex:1; opacity:0.55; }
+.class-btns button.active { opacity:1; box-shadow: 0 0 0 2px #1e293b inset; }
+@media (max-width:850px){ .grid{ grid-template-columns:1fr; } canvas{ height:340px; } }
+@media (max-width:500px){ .stats{ grid-template-columns:1fr; } }
+
+</style>
+</head>
+<body>
+<header>
+  <h1>Interactive Association Rule Mining Lab</h1>
+  <p>Edit a market-basket transaction table and mine 'if-then' rules, scored by support, confidence and lift.</p>
+</header>
+<main class="container">
+  <div class="grid">
+    <section class="card">
+      
+<h2>Transaction Table</h2>
+<p class="hint">Tick which items appear in each transaction (basket), then mine rules. Edit freely &mdash; results update when you click "Find Rules".</p>
+<div id="matrixHolder"></div>
+<div class="button-row">
+  <button class="secondary" onclick="loadExample()">Load Example</button>
+  <button class="secondary" onclick="addTransaction()">Add Transaction</button>
+  <button class="danger" onclick="clearAll()">Clear</button>
+</div>
+
+<h3 style="margin-top:22px;">Thresholds</h3>
+<label for="supRange">Min Support: <span id="supVal">0.30</span></label>
+<input id="supRange" type="range" min="0.1" max="0.8" step="0.05" value="0.3" oninput="onThreshChange()">
+<label for="confRange">Min Confidence: <span id="confVal">0.60</span></label>
+<input id="confRange" type="range" min="0.1" max="1.0" step="0.05" value="0.6" oninput="onThreshChange()">
+<button class="primary" onclick="findRules()">Find Rules</button>
+
+    </section>
+    <section class="card">
+      
+<h2>Discovered Rules</h2>
+<div class="stats">
+  <div class="stat">Transactions<strong id="nTrans">&mdash;</strong></div>
+  <div class="stat">Frequent Itemsets<strong id="nFreq">&mdash;</strong></div>
+  <div class="stat">Rules Found<strong id="nRules">&mdash;</strong></div>
+</div>
+<table class="rules" id="rulesTable">
+  <thead><tr><th>Rule</th><th>Support</th><th>Confidence</th><th>Lift</th></tr></thead>
+  <tbody><tr><td colspan="4" class="hint">Click "Find Rules" to run the analysis.</td></tr></tbody>
+</table>
+
+    </section>
+  </div>
+  <section class="card concept">
+    
+<h2>What is Association Rule Mining?</h2>
+<p>Association rule mining finds items that tend to co-occur in the same transaction &mdash; the classic "customers who bought X also bought Y" pattern from market-basket analysis. Every rule {A} &rarr; {B} is scored on three measures:</p>
+<div class="formula-box">
+  <strong>Support</strong> = P(A and B) &mdash; how often the combination occurs.<br>
+  <strong>Confidence</strong> = P(B | A) &mdash; how reliable the rule is.<br>
+  <strong>Lift</strong> = P(B | A) / P(B) &mdash; how much more likely B is, given A, than by chance. Lift &gt; 1 means a genuine positive association.
+</div>
+<p>The Apriori algorithm speeds this up by first pruning itemsets that don't meet the minimum support threshold, since no rule built from an infrequent itemset can be useful. Here, with only a handful of items, we simply enumerate every subset directly.</p>
+
+  </section>
+</main>
+<footer>
+  <div class="credit">
+    Developed by <span class="name">Dr. Tahseen A. Mulla</span><br>
+    Associate Professor<br>
+    Department of Computer Science and Engineering [IOT &amp; CSBT]
+  </div>
+  <div class="counter">
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=tahseen-mulla-mllab.association-rule-mining&left_color=64748b&right_color=2563eb" alt="visitor counter" />
+  </div>
+</footer>
+<script>
+
+let items = ["Bread","Butter","Eggs","Milk","Jam"];
+let transactions = [
+  [1,1,0,1,0],[1,0,1,1,1],[0,1,1,0,1],[1,1,1,1,0],[1,1,0,0,1],[0,1,1,1,0]
+];
+
+function renderMatrix(){
+  const holder = document.getElementById("matrixHolder");
+  let head = "<tr><th>#</th>" + items.map(it=>`<th>${it}</th>`).join("") + "<th></th></tr>";
+  let rows = transactions.map((t,ti)=>{
+    let cells = t.map((v,ii)=>`<td><input type="checkbox" ${v?"checked":""} onchange="toggleCell(${ti},${ii},this.checked)"></td>`).join("");
+    return `<tr><td>T${ti+1}</td>${cells}<td><button class="remove" onclick="removeTransaction(${ti})">&times;</button></td></tr>`;
+  }).join("");
+  holder.innerHTML = `<table class="matrix">${head}${rows}</table>`;
+}
+function toggleCell(ti,ii,checked){ transactions[ti][ii] = checked?1:0; }
+function addTransaction(){ transactions.push(items.map(()=>0)); renderMatrix(); }
+function removeTransaction(ti){ transactions.splice(ti,1); renderMatrix(); }
+function clearAll(){ transactions = transactions.map(t=>t.map(()=>0)); renderMatrix(); }
+function loadExample(){
+  transactions = [[1,1,0,1,0],[1,0,1,1,1],[0,1,1,0,1],[1,1,1,1,0],[1,1,0,0,1],[0,1,1,1,0]];
+  renderMatrix();
+}
+function onThreshChange(){
+  document.getElementById("supVal").textContent = parseFloat(document.getElementById("supRange").value).toFixed(2);
+  document.getElementById("confVal").textContent = parseFloat(document.getElementById("confRange").value).toFixed(2);
+}
+
+function itemsetSupport(mask){
+  const n = transactions.length;
+  const count = transactions.filter(t => mask.every(i => t[i]===1)).length;
+  return count/n;
+}
+
+function allSubsetsUpTo(maxSize){
+  const idxs = items.map((_,i)=>i);
+  const subsets = [];
+  const total = 1<<idxs.length;
+  for(let m=1; m<total; m++){
+    const subset = idxs.filter(i => m & (1<<i));
+    if(subset.length <= maxSize) subsets.push(subset);
+  }
+  return subsets;
+}
+
+function findRules(){
+  const minSup = parseFloat(document.getElementById("supRange").value);
+  const minConf = parseFloat(document.getElementById("confRange").value);
+  const n = transactions.length;
+
+  const allSubsets = allSubsetsUpTo(3);
+  const frequent = allSubsets.filter(s => itemsetSupport(s) >= minSup);
+
+  let rules = [];
+  frequent.forEach(itemset=>{
+    if(itemset.length < 2) return;
+    for(let i=1; i<(1<<itemset.length)-1; i++){
+      const antecedent = itemset.filter((_,idx)=> i & (1<<idx));
+      const consequent = itemset.filter((_,idx)=> !(i & (1<<idx)));
+      if(!antecedent.length || !consequent.length) continue;
+      const supAB = itemsetSupport(itemset);
+      const supA = itemsetSupport(antecedent);
+      const supB = itemsetSupport(consequent);
+      const conf = supAB/supA;
+      const lift = supB>0 ? conf/supB : 0;
+      if(conf >= minConf){
+        rules.push({antecedent, consequent, sup:supAB, conf, lift});
+      }
+    }
+  });
+
+  // de-duplicate identical rules, sort by lift descending
+  const seen = new Set();
+  rules = rules.filter(r=>{
+    const key = r.antecedent.join(',')+'->'+r.consequent.join(',');
+    if(seen.has(key)) return false;
+    seen.add(key); return true;
+  }).sort((a,b)=> b.lift - a.lift).slice(0,10);
+
+  document.getElementById("nTrans").textContent = n;
+  document.getElementById("nFreq").textContent = frequent.length;
+  document.getElementById("nRules").textContent = rules.length;
+
+  const tbody = document.querySelector("#rulesTable tbody");
+  if(!rules.length){
+    tbody.innerHTML = '<tr><td colspan="4" class="hint">No rules meet these thresholds &mdash; try lowering them.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rules.map(r=>{
+    const a = r.antecedent.map(i=>items[i]).join(", ");
+    const c = r.consequent.map(i=>items[i]).join(", ");
+    return `<tr><td>{${a}} &rarr; {${c}}</td><td>${r.sup.toFixed(2)}</td><td>${r.conf.toFixed(2)}</td><td>${r.lift.toFixed(2)}</td></tr>`;
+  }).join("");
+}
+
+renderMatrix();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interactive Recommendation System Lab</title>
+<style>
+:root {
+  --bg: #f5f7fb; --card: #ffffff; --text: #172033; --muted: #64748b;
+  --accent: #2563eb; --accent2: #1d4ed8; --border: #dbe3ef;
+  --danger: #dc2626; --success: #15803d;
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+header { background: linear-gradient(135deg, #1d4ed8, #2563eb); color:white; padding:34px 20px; text-align:center; }
+header h1 { margin:0 0 8px; font-size: clamp(1.6rem, 4vw, 2.5rem); }
+header p { margin:0 auto; max-width:750px; opacity:0.92; line-height:1.55; }
+.container { max-width:1180px; margin:28px auto; padding:0 16px 30px; }
+.grid { display:grid; grid-template-columns: 340px 1fr; gap:20px; align-items:start; }
+.card { background: var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow: 0 8px 30px rgba(30,64,175,0.06); }
+h2,h3 { margin-top:0; }
+label { display:block; font-weight:650; margin:12px 0 6px; }
+input[type="number"], input[type="text"], select { width:100%; padding:10px 12px; border-radius:9px; border:1px solid #cbd5e1; font-size:1rem; }
+input[type="range"] { width:100%; }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+button { border:0; border-radius:9px; padding:10px 13px; font-size:0.95rem; font-weight:700; cursor:pointer; }
+.primary { width:100%; margin-top:12px; background: var(--accent); color:white; }
+.primary:hover { background: var(--accent2); }
+.secondary { background:#e8eefc; color:#1e3a8a; }
+.danger { background:#fee2e2; color: var(--danger); }
+.button-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.button-row button { flex:1; }
+.equation { margin:16px 0; padding:15px; border-radius:12px; background:#eff6ff; text-align:center; font-size:1.15rem; font-weight:800; color:#1e40af; }
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:16px 0; }
+.stat { background:#f8fafc; border:1px solid var(--border); border-radius:11px; padding:12px; text-align:center; font-size:0.85rem;}
+.stat strong { display:block; font-size:1.15rem; margin-top:4px; }
+canvas { width:100%; height:420px; border-radius:12px; background:white; border:1px solid var(--border); cursor:crosshair; }
+.hint { color: var(--muted); line-height:1.5; font-size:0.92rem; }
+.points { max-height:200px; overflow-y:auto; margin-top:14px; border-top:1px solid var(--border); }
+.point-item { display:flex; justify-content:space-between; gap:10px; padding:8px 2px; border-bottom:1px solid #eef2f7; font-size:0.88rem; }
+.remove { border:0; background:transparent; color:var(--danger); padding:0; font-weight:700; cursor:pointer; }
+.prediction-result { margin-top:10px; min-height:24px; font-weight:750; color: var(--success); }
+.concept { margin-top:20px; line-height:1.65; }
+.formula-box { padding:14px; border-left:4px solid var(--accent); background:#f8fafc; border-radius:8px; }
+footer { text-align:center; color:var(--muted); padding:26px 20px 22px; font-size:0.9rem; border-top:1px solid var(--border); margin-top:10px; }
+footer .credit { font-size:0.92rem; color:#334155; line-height:1.6; }
+footer .credit .name { font-weight:700; color:#1e293b; }
+footer .counter { margin-top:10px; display:flex; justify-content:center; }
+footer .counter img { height:20px; border-radius:4px; }
+table.matrix { border-collapse:collapse; width:100%; font-size:0.85rem; }
+table.matrix th, table.matrix td { border:1px solid var(--border); padding:6px; text-align:center; }
+table.matrix input[type="number"] { padding:4px; text-align:center; }
+table.rules { width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:10px;}
+table.rules th, table.rules td { border-bottom:1px solid var(--border); padding:7px 6px; text-align:left; }
+.legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:0.85rem; }
+.legend span.dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; }
+.class-btns { display:flex; gap:8px; margin-top:6px; }
+.class-btns button { flex:1; opacity:0.55; }
+.class-btns button.active { opacity:1; box-shadow: 0 0 0 2px #1e293b inset; }
+@media (max-width:850px){ .grid{ grid-template-columns:1fr; } canvas{ height:340px; } }
+@media (max-width:500px){ .stats{ grid-template-columns:1fr; } }
+
+</style>
+</head>
+<body>
+<header>
+  <h1>Interactive Recommendation System Lab</h1>
+  <p>Edit a user-item ratings matrix and generate collaborative-filtering recommendations using cosine similarity.</p>
+</header>
+<main class="container">
+  <div class="grid">
+    <section class="card">
+      
+<h2>Ratings Matrix</h2>
+<p class="hint">Edit any rating (0&ndash;5, leave 0 for "not rated"). Recommendations are computed from whatever is currently in the table.</p>
+<div id="matrixHolder"></div>
+<div class="button-row">
+  <button class="secondary" onclick="loadExample()">Load Example</button>
+  <button class="danger" onclick="clearAll()">Clear</button>
+</div>
+
+<h3 style="margin-top:22px;">Recommend For</h3>
+<select id="userSelect"></select>
+<button class="primary" onclick="recommend()">Get Recommendations</button>
+<div id="predictionResult" class="prediction-result"></div>
+
+    </section>
+    <section class="card">
+      
+<h2>Similar Users &amp; Recommendations</h2>
+<div class="stats">
+  <div class="stat">Users<strong id="nUsers">&mdash;</strong></div>
+  <div class="stat">Items<strong id="nItems">&mdash;</strong></div>
+  <div class="stat">Most Similar To<strong id="mostSimilar">&mdash;</strong></div>
+</div>
+<h3>User Similarity (cosine)</h3>
+<div id="simTable"></div>
+<h3 style="margin-top:18px;">Ranked Recommendations</h3>
+<table class="rules" id="recTable">
+  <thead><tr><th>Item</th><th>Predicted Score</th></tr></thead>
+  <tbody><tr><td colspan="2" class="hint">Choose a user and click "Get Recommendations".</td></tr></tbody>
+</table>
+
+    </section>
+  </div>
+  <section class="card concept">
+    
+<h2>What is a Recommendation System?</h2>
+<p><b>User-based collaborative filtering</b> recommends items by finding users with similar taste and suggesting what they liked. Similarity between two users' rating vectors is commonly measured with <b>cosine similarity</b>:</p>
+<div class="formula-box">
+  cos(u, v) = (u &middot; v) / (||u|| &middot; ||v||)<br><br>
+  A value near 1 means very similar rating patterns; near 0 means unrelated tastes.
+</div>
+<p>To recommend items to a target user, the system looks at items the user hasn't rated, and scores each one as a similarity-weighted average of how other users rated it &mdash; giving more weight to more-similar users. The main weakness of this approach is <b>cold start</b>: a brand-new user or item with no ratings yet has nothing to compare against.</p>
+
+  </section>
+</main>
+<footer>
+  <div class="credit">
+    Developed by <span class="name">Dr. Tahseen A. Mulla</span><br>
+    Associate Professor<br>
+    Department of Computer Science and Engineering [IOT &amp; CSBT]
+  </div>
+  <div class="counter">
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=tahseen-mulla-mllab.recommendation-system&left_color=64748b&right_color=2563eb" alt="visitor counter" />
+  </div>
+</footer>
+<script>
+
+let users = ["UserA","UserB","UserC","UserD"];
+let items = ["P1","P2","P3","P4","P5"];
+let ratings = [
+  [5,4,1,0,0],
+  [4,0,1,0,0],
+  [0,0,0,5,4],
+  [1,1,5,4,0]
+];
+
+function renderMatrix(){
+  const holder = document.getElementById("matrixHolder");
+  let head = "<tr><th></th>" + items.map(it=>`<th>${it}</th>`).join("") + "</tr>";
+  let rows = users.map((u,ui)=>{
+    let cells = ratings[ui].map((v,ii)=>`<td><input type="number" min="0" max="5" value="${v}" onchange="setRating(${ui},${ii},this.value)"></td>`).join("");
+    return `<tr><td>${u}</td>${cells}</tr>`;
+  }).join("");
+  holder.innerHTML = `<table class="matrix">${head}${rows}</table>`;
+  const sel = document.getElementById("userSelect");
+  sel.innerHTML = users.map((u,i)=>`<option value="${i}">${u}</option>`).join("");
+  document.getElementById("nUsers").textContent = users.length;
+  document.getElementById("nItems").textContent = items.length;
+}
+
+function setRating(ui,ii,v){ ratings[ui][ii] = parseFloat(v)||0; }
+function loadExample(){
+  ratings = [[5,4,1,0,0],[4,0,1,0,0],[0,0,0,5,4],[1,1,5,4,0]];
+  renderMatrix();
+}
+function clearAll(){ ratings = ratings.map(row=>row.map(()=>0)); renderMatrix(); }
+
+function cosine(a,b){
+  let dot=0, na=0, nb=0;
+  for(let i=0;i<a.length;i++){ dot += a[i]*b[i]; na += a[i]*a[i]; nb += b[i]*b[i]; }
+  if(na===0 || nb===0) return 0;
+  return dot/(Math.sqrt(na)*Math.sqrt(nb));
+}
+
+function renderSimTable(targetIdx, sims){
+  const holder = document.getElementById("simTable");
+  let rows = users.map((u,i)=> i===targetIdx ? "" : `<tr><td>${u}</td><td>${sims[i].toFixed(3)}</td></tr>`).join("");
+  holder.innerHTML = `<table class="rules"><thead><tr><th>User</th><th>Cosine similarity to ${users[targetIdx]}</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function recommend(){
+  const targetIdx = parseInt(document.getElementById("userSelect").value);
+  const target = ratings[targetIdx];
+  const sims = ratings.map((row,i)=> i===targetIdx ? -1 : cosine(target,row));
+
+  let bestIdx=-1, bestSim=-Infinity;
+  sims.forEach((s,i)=>{ if(i!==targetIdx && s>bestSim){ bestSim=s; bestIdx=i; } });
+  document.getElementById("mostSimilar").textContent = bestIdx>=0 ? users[bestIdx] : "—";
+  renderSimTable(targetIdx, sims);
+
+  const scores = items.map((item,ii)=>{
+    if(target[ii] > 0) return null; // already rated
+    let num=0, den=0;
+    ratings.forEach((row,ui)=>{
+      if(ui===targetIdx) return;
+      const s = sims[ui];
+      if(s>0 && row[ii]>0){ num += s*row[ii]; den += s; }
+    });
+    return den>0 ? num/den : 0;
+  });
+
+  const ranked = items.map((it,ii)=>({item:it, score:scores[ii]}))
+    .filter(r=>r.score!==null)
+    .sort((a,b)=> b.score-a.score);
+
+  const tbody = document.querySelector("#recTable tbody");
+  if(!ranked.length){
+    tbody.innerHTML = '<tr><td colspan="2" class="hint">This user has rated everything, or no similar users rated the remaining items.</td></tr>';
+  } else {
+    tbody.innerHTML = ranked.map(r=>`<tr><td>${r.item}</td><td>${r.score.toFixed(2)}</td></tr>`).join("");
+  }
+  document.getElementById("predictionResult").textContent = ranked.length
+    ? `Top pick for ${users[targetIdx]}: ${ranked[0].item}`
+    : "No unrated items to recommend.";
+}
+
+renderMatrix();
+
+</script>
+</body>
+</html>
