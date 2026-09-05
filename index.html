@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Machine Learning Virtual Laboratory — Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2430; --ink-soft:#4a5568; --paper:#fbfaf6; --panel:#f1efe7;
+    --sidebar-bg:#122431; --sidebar-bg-2:#0d1c27;
+    --accent:#2f8f74; --accent-dark:#1f6a56; --amber:#d98a3d; --amber-soft:#f3ddbc;
+    --line:#ddd7c6;
+    --font-head:'Source Serif 4', Georgia, serif;
+    --font-body:'Inter', -apple-system, sans-serif;
+    --font-mono:'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; font-family:var(--font-body); background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased;}
+  a{color:inherit;}
+  img{max-width:100%; display:block;}
+
+  /* NAVBAR */
+  .navbar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 48px;
+    background:rgba(251,250,246,0.9);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .navbar .brand{ display:flex; align-items:center; gap:10px; font-family:var(--font-head); font-weight:600; font-size:17px; }
+  .navbar .brand .dot{ width:9px; height:9px; border-radius:50%; background:var(--accent); }
+  .navbar nav{ display:flex; gap:28px; font-size:13.5px; }
+  .navbar nav a{ text-decoration:none; color:var(--ink-soft); }
+  .navbar nav a:hover{ color:var(--accent-dark); }
+  .navbar .cta{
+    background:var(--accent-dark); color:#fff; text-decoration:none;
+    padding:9px 18px; border-radius:7px; font-size:13px; font-weight:600;
+  }
+  .navbar .cta:hover{ background:var(--ink); }
+
+  /* HERO */
+  .hero{
+    position:relative;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.07) 1px, transparent 1px) 0 0/24px 24px,
+      linear-gradient(135deg, var(--sidebar-bg), var(--sidebar-bg-2));
+    color:#fff;
+    overflow:hidden;
+    padding:0;
+  }
+  .hero-grid{
+    max-width:1180px; margin:0 auto;
+    display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:center;
+    padding:80px 48px 90px;
+  }
+  .hero .kicker{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em;
+    color:#8fd6c1; margin-bottom:16px;
+  }
+  .hero h1{
+    font-family:var(--font-head); font-size:46px; line-height:1.15;
+    margin:0 0 18px; font-weight:600;
+  }
+  .hero h1 em{ color:#8fd6c1; font-style:normal; }
+  .hero p.lede{ font-size:16.5px; color:#c9d6d3; line-height:1.65; max-width:480px; margin-bottom:30px; }
+  .hero .btn-row{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--amber); color:#2a1a05; text-decoration:none; font-weight:700;
+    padding:13px 24px; border-radius:8px; font-size:14.5px;
+  }
+  .btn-primary:hover{ background:#e6a457; }
+  .btn-ghost{
+    border:1px solid rgba(255,255,255,0.3); color:#fff; text-decoration:none;
+    padding:13px 24px; border-radius:8px; font-size:14.5px; font-weight:600;
+  }
+  .btn-ghost:hover{ border-color:#fff; }
+
+  .hero-art{ position:relative; height:380px; }
+
+  /* STATS STRIP */
+  .stats-strip{
+    background:var(--panel); border-bottom:1px solid var(--line);
+    display:flex; justify-content:center; gap:0; flex-wrap:wrap; padding:26px 20px;
+  }
+  .stats-strip .stat{ padding:0 40px; text-align:center; border-right:1px solid var(--line); }
+  .stats-strip .stat:last-child{ border-right:none; }
+  .stats-strip .stat b{ display:block; font-family:var(--font-head); font-size:28px; color:var(--accent-dark); }
+  .stats-strip .stat span{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.04em; color:var(--ink-soft); text-transform:uppercase; }
+
+  /* SECTIONS */
+  section.block{ max-width:1180px; margin:0 auto; padding:76px 48px; }
+  .section-kicker{ font-family:var(--font-mono); font-size:11.5px; letter-spacing:0.08em; color:var(--accent-dark); margin-bottom:10px; }
+  .section-title{ font-family:var(--font-head); font-size:32px; margin:0 0 14px; max-width:620px; }
+  .section-lede{ font-size:15.5px; color:var(--ink-soft); max-width:600px; line-height:1.7; margin-bottom:46px; }
+
+  /* FEATURE GRID */
+  .feature-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  .feature-card{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    padding:26px 24px; transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .feature-card:hover{ transform:translateY(-3px); border-color:var(--accent); box-shadow:0 14px 28px -16px rgba(31,106,86,0.35); }
+  .feature-card .icon{ width:46px; height:46px; margin-bottom:16px; }
+  .feature-card h3{ font-family:var(--font-head); font-size:17px; margin:0 0 8px; }
+  .feature-card p{ font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin:0; }
+
+  /* EXPERIMENT LINK GRID */
+  .exp-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .exp-card{
+    display:flex; align-items:center; gap:14px;
+    background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:16px 18px; text-decoration:none; color:var(--ink);
+    transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .exp-card:hover{ transform:translateY(-2px); border-color:var(--accent); box-shadow:0 10px 22px -14px rgba(31,106,86,0.35); }
+  .exp-card .exnum{
+    font-family:var(--font-mono); font-size:12px; color:var(--accent-dark);
+    background:rgba(47,143,116,0.1); padding:5px 9px; border-radius:5px; flex-shrink:0;
+  }
+  .exp-card .exbody{ min-width:0; }
+  .exp-card .extitle{ font-family:var(--font-head); font-size:15px; font-weight:600; margin-bottom:3px; }
+  .exp-card .excat{ font-family:var(--font-mono); font-size:10px; letter-spacing:0.03em; color:var(--amber); text-transform:uppercase; }
+  .exp-card .exarrow{ margin-left:auto; color:var(--ink-soft); font-size:15px; flex-shrink:0; }
+
+  /* HOW IT WORKS */
+  .steps{ display:grid; grid-template-columns:repeat(3,1fr); gap:30px; }
+  .step{ text-align:left; }
+  .step .step-art{ height:130px; margin-bottom:18px; }
+  .step .step-num{ font-family:var(--font-mono); font-size:11px; color:var(--amber); margin-bottom:8px; }
+  .step h3{ font-family:var(--font-head); font-size:17px; margin:0 0 8px; }
+  .step p{ font-size:13.5px; color:var(--ink-soft); line-height:1.6; margin:0; }
+
+  /* SPLIT PANEL */
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center; }
+  .split .split-art{ height:280px; }
+  .split h2{ font-family:var(--font-head); font-size:28px; margin:0 0 16px; }
+  .split p{ font-size:15px; color:var(--ink-soft); line-height:1.75; margin:0 0 14px; }
+  .split ul{ padding-left:18px; margin:18px 0 0; }
+  .split li{ font-size:14px; color:var(--ink-soft); line-height:1.9; }
+
+  /* CTA BAND */
+  .cta-band{
+    background:linear-gradient(135deg, var(--accent-dark), var(--accent));
+    color:#fff; text-align:center; padding:70px 30px; border-radius:0;
+  }
+  .cta-band h2{ font-family:var(--font-head); font-size:30px; margin:0 0 14px; }
+  .cta-band p{ font-size:15px; color:#dff3ec; max-width:480px; margin:0 auto 28px; line-height:1.6; }
+
+  /* FOOTER */
+  footer{ text-align:center; padding:34px 20px 30px; border-top:1px solid var(--line); background:var(--panel); }
+  footer .credit{ font-size:12.5px; color:var(--ink-soft); line-height:1.7; }
+  footer .credit .name{ font-weight:600; color:var(--ink); }
+  footer .counter{ margin-top:10px; display:flex; justify-content:center; }
+  footer .counter img{ height:20px; border-radius:4px; }
+  footer .backlink{ margin-top:14px; font-size:12.5px; }
+  footer .backlink a{ color:var(--accent-dark); text-decoration:none; font-weight:600; }
+
+  @keyframes pulse{ 0%,100%{ opacity:0.55; r:5; } 50%{ opacity:1; r:7; } }
+  .node{ animation:pulse 2.6s ease-in-out infinite; }
+  .node.d1{ animation-delay:0.3s; } .node.d2{ animation-delay:0.9s; } .node.d3{ animation-delay:1.4s; }
+  .node.d4{ animation-delay:0.6s; } .node.d5{ animation-delay:1.8s; }
+
+  @media (max-width:900px){
+    .navbar nav{ display:none; }
+    .hero-grid{ grid-template-columns:1fr; padding:56px 22px 60px; }
+    .hero-art{ height:260px; order:-1; }
+    section.block{ padding:56px 22px; }
+    .feature-grid, .steps{ grid-template-columns:1fr; }
+    .exp-grid{ grid-template-columns:1fr; }
+    .split{ grid-template-columns:1fr; gap:26px; }
+    .split .split-art{ order:-1; height:220px; }
+    .stats-strip .stat{ padding:0 20px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="brand"><span class="dot"></span>ML Virtual Lab</div>
+  <nav>
+    <a href="#experiments">Experiments</a>
+    <a href="#how">How it works</a>
+    <a href="#about">About</a>
+  </nav>
+  <a class="cta" href="lab.html">Launch Lab →</a>
+</div>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker">MACHINE LEARNING · VIRTUAL LABORATORY</div>
+      <h1>Learn machine learning by <em>seeing</em> it think.</h1>
+      <p class="lede">Eleven hands-on experiments — from linear regression to backpropagation — each with theory, reference code, and a live interactive demo you can run right in your browser. No installs, no setup.</p>
+      <div class="btn-row">
+        <a class="btn-primary" href="#experiments">Explore the 11 Experiments</a>
+        <a class="btn-ghost" href="#how">See how it works</a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <svg viewBox="0 0 460 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+        <g stroke="rgba(255,255,255,0.18)" stroke-width="1.2">
+          <line x1="70" y1="60" x2="230" y2="90"/><line x1="70" y1="60" x2="230" y2="170"/>
+          <line x1="70" y1="60" x2="230" y2="250"/><line x1="70" y1="150" x2="230" y2="90"/>
+          <line x1="70" y1="150" x2="230" y2="170"/><line x1="70" y1="150" x2="230" y2="250"/>
+          <line x1="70" y1="150" x2="230" y2="320"/><line x1="70" y1="240" x2="230" y2="90"/>
+          <line x1="70" y1="240" x2="230" y2="170"/><line x1="70" y1="240" x2="230" y2="250"/>
+          <line x1="70" y1="240" x2="230" y2="320"/><line x1="70" y1="320" x2="230" y2="170"/>
+          <line x1="70" y1="320" x2="230" y2="250"/><line x1="70" y1="320" x2="230" y2="320"/>
+          <line x1="230" y1="90" x2="380" y2="140"/><line x1="230" y1="170" x2="380" y2="140"/>
+          <line x1="230" y1="250" x2="380" y2="140"/><line x1="230" y1="90" x2="380" y2="240"/>
+          <line x1="230" y1="170" x2="380" y2="240"/><line x1="230" y1="250" x2="380" y2="240"/>
+          <line x1="230" y1="320" x2="380" y2="240"/>
+        </g>
+        <circle class="node d1" cx="70" cy="60" r="6" fill="#d98a3d"/>
+        <circle class="node d2" cx="70" cy="150" r="6" fill="#d98a3d"/>
+        <circle class="node d3" cx="70" cy="240" r="6" fill="#d98a3d"/>
+        <circle class="node d4" cx="70" cy="320" r="6" fill="#d98a3d"/>
+        <circle class="node d2" cx="230" cy="90" r="6" fill="#8fd6c1"/>
+        <circle class="node d5" cx="230" cy="170" r="6" fill="#8fd6c1"/>
+        <circle class="node d1" cx="230" cy="250" r="6" fill="#8fd6c1"/>
+        <circle class="node d3" cx="230" cy="320" r="6" fill="#8fd6c1"/>
+        <circle class="node d4" cx="380" cy="140" r="7" fill="#2f8f74"/>
+        <circle class="node d2" cx="380" cy="240" r="7" fill="#2f8f74"/>
+        <text x="70" y="352" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#8fa39d">input</text>
+        <text x="230" y="352" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#8fa39d">hidden</text>
+        <text x="380" y="352" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#8fa39d">output</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="stats-strip">
+  <div class="stat"><b>11</b><span>Experiments</span></div>
+  <div class="stat"><b>11</b><span>Interactive Demos</span></div>
+  <div class="stat"><b>6</b><span>Topic Areas</span></div>
+  <div class="stat"><b>100%</b><span>Runs In-Browser</span></div>
+</div>
+
+<section class="block" id="features">
+  <div class="section-kicker">WHAT YOU'LL LEARN</div>
+  <h2 class="section-title">One lab, six areas of machine learning.</h2>
+  <p class="section-lede">Every experiment pairs the underlying theory with runnable code and a hands-on demo — so the maths and the intuition build together, not separately.</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <svg class="icon" viewBox="0 0 46 46"><circle cx="23" cy="23" r="21" fill="#eef6f2"/><path d="M10 32 L18 22 L26 27 L36 12" stroke="#2f8f74" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="32" r="2.5" fill="#1f6a56"/><circle cx="18" cy="22" r="2.5" fill="#1f6a56"/><circle cx="26" cy="27" r="2.5" fill="#1f6a56"/><circle cx="36" cy="12" r="2.5" fill="#1f6a56"/></svg>
+      <h3>Regression</h3>
+      <p>Fit lines and planes through data to predict continuous outcomes — simple and multiple linear regression.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="icon" viewBox="0 0 46 46"><circle cx="23" cy="23" r="21" fill="#fdf3e7"/><circle cx="15" cy="15" r="4" fill="#d98a3d"/><circle cx="30" cy="14" r="4" fill="#2f8f74"/><circle cx="14" cy="30" r="4" fill="#d98a3d"/><circle cx="32" cy="30" r="4" fill="#2f8f74"/><line x1="23" y1="4" x2="23" y2="42" stroke="#c9c2ae" stroke-width="1.5" stroke-dasharray="3,3"/></svg>
+      <h3>Classification</h3>
+      <p>Draw decision boundaries with logistic regression, multi-class models and decision trees.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="icon" viewBox="0 0 46 46"><circle cx="23" cy="23" r="21" fill="#eef6f2"/><path d="M23 8 L14 18 L18 18 L18 30 L28 30 L28 18 L32 18 Z" fill="#2f8f74" opacity="0.85"/><path d="M12 32 L8 40 L16 40 Z" fill="#1f6a56" opacity="0.6"/><path d="M34 32 L30 40 L38 40 Z" fill="#1f6a56" opacity="0.6"/></svg>
+      <h3>Ensemble Learning</h3>
+      <p>Combine many decision trees into a random forest, and watch the boundary smooth out.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="icon" viewBox="0 0 46 46"><circle cx="23" cy="23" r="21" fill="#fdf3e7"/><circle cx="14" cy="16" r="5" fill="#d98a3d" opacity="0.85"/><circle cx="32" cy="14" r="5" fill="#2f8f74" opacity="0.85"/><circle cx="23" cy="32" r="5" fill="#1e3a8a" opacity="0.55"/><circle cx="14" cy="16" r="1.5" fill="#7a4a12"/><circle cx="32" cy="14" r="1.5" fill="#12403a"/><circle cx="23" cy="32" r="1.5" fill="#0d2350"/></svg>
+      <h3>Unsupervised Learning</h3>
+      <p>Discover structure with no labels at all — K-Means clustering and association rule mining.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="icon" viewBox="0 0 46 46"><circle cx="23" cy="23" r="21" fill="#eef6f2"/><circle cx="10" cy="14" r="3" fill="#d98a3d"/><circle cx="10" cy="23" r="3" fill="#d98a3d"/><circle cx="10" cy="32" r="3" fill="#d98a3d"/><circle cx="23" cy="10" r="3" fill="#2f8f74"/><circle cx="23" cy="23" r="3" fill="#2f8f74"/><circle cx="23" cy="36" r="3" fill="#2f8f74"/><circle cx="36" cy="18" r="3" fill="#1f6a56"/><circle cx="36" cy="28" r="3" fill="#1f6a56"/><g stroke="#c9c2ae" stroke-width="1"><line x1="10" y1="14" x2="23" y2="23"/><line x1="10" y1="23" x2="23" y2="23"/><line x1="10" y1="32" x2="23" y2="23"/><line x1="23" y1="23" x2="36" y2="18"/><line x1="23" y1="23" x2="36" y2="28"/></g></svg>
+      <h3>Neural Networks</h3>
+      <p>Watch activations propagate forward, then train a network with backpropagation on XOR.</p>
+    </div>
+    <div class="feature-card">
+      <svg class="icon" viewBox="0 0 46 46"><circle cx="23" cy="23" r="21" fill="#fdf3e7"/><rect x="10" y="12" width="26" height="22" rx="2" fill="#fff" stroke="#d98a3d" stroke-width="1.5"/><line x1="10" y1="18" x2="36" y2="18" stroke="#d98a3d" stroke-width="1.2"/><rect x="13" y="21" width="4" height="4" fill="#2f8f74"/><rect x="19" y="21" width="4" height="4" fill="#c9c2ae"/><rect x="25" y="21" width="4" height="4" fill="#2f8f74"/><rect x="13" y="27" width="4" height="4" fill="#c9c2ae"/><rect x="19" y="27" width="4" height="4" fill="#2f8f74"/><rect x="25" y="27" width="4" height="4" fill="#c9c2ae"/></svg>
+      <h3>Applied ML</h3>
+      <p>Build a collaborative-filtering recommendation engine from a live, editable ratings matrix.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="experiments" style="padding-top:0;">
+  <div class="section-kicker">JUMP RIGHT IN</div>
+  <h2 class="section-title">All 11 experiments, one click away.</h2>
+  <p class="section-lede">Every card below opens that experiment's live interactive demo directly. Prefer the full write-up with theory and code first? Use <a href="lab.html" style="color:var(--accent-dark);font-weight:600;">the lab manual</a> instead.</p>
+
+  <div class="exp-grid">
+    <a class="exp-card" href="linear-regression-lab.html"><span class="exnum">01</span><span class="exbody"><span class="extitle">Simple Linear Regression</span><span class="excat">Regression</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="multiple-linear-regression-lab.html"><span class="exnum">02</span><span class="exbody"><span class="extitle">Multiple Linear Regression</span><span class="excat">Regression</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="logistic-regression-lab.html"><span class="exnum">03</span><span class="exbody"><span class="extitle">Logistic Regression</span><span class="excat">Classification</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="multiclass-classification-lab.html"><span class="exnum">04</span><span class="exbody"><span class="extitle">Multi-class Classification</span><span class="excat">Classification</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="decision-tree-lab.html"><span class="exnum">05</span><span class="exbody"><span class="extitle">Decision Trees</span><span class="excat">Classification</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="random-forest-lab.html"><span class="exnum">06</span><span class="exbody"><span class="extitle">Random Forest</span><span class="excat">Ensemble Learning</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="kmeans-clustering-lab.html"><span class="exnum">07</span><span class="exbody"><span class="extitle">K-Means Clustering</span><span class="excat">Unsupervised Learning</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="association-rule-mining-lab.html"><span class="exnum">08</span><span class="exbody"><span class="extitle">Association Rule Mining</span><span class="excat">Unsupervised Learning</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="neural-network-lab.html"><span class="exnum">09</span><span class="exbody"><span class="extitle">Neural Networks</span><span class="excat">Neural Networks</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="backpropagation-lab.html"><span class="exnum">10</span><span class="exbody"><span class="extitle">Backpropagation Algorithm</span><span class="excat">Neural Networks</span></span><span class="exarrow">→</span></a>
+    <a class="exp-card" href="recommendation-system-lab.html"><span class="exnum">11</span><span class="exbody"><span class="extitle">Recommendation System</span><span class="excat">Applied ML</span></span><span class="exarrow">→</span></a>
+  </div>
+</section>
+
+<section class="block" id="how">
+  <div class="section-kicker">HOW IT WORKS</div>
+  <h2 class="section-title">Read it, run it, then try it yourself.</h2>
+  <p class="section-lede">Every experiment follows the same three-step flow, so students always know what to expect.</p>
+
+  <div class="steps">
+    <div class="step">
+      <svg class="step-art" viewBox="0 0 220 130"><rect x="14" y="10" width="192" height="110" rx="10" fill="#f1efe7" stroke="#ddd7c6"/><rect x="30" y="26" width="90" height="8" rx="4" fill="#2f8f74" opacity="0.6"/><rect x="30" y="42" width="140" height="6" rx="3" fill="#c9c2ae"/><rect x="30" y="54" width="120" height="6" rx="3" fill="#c9c2ae"/><rect x="30" y="72" width="160" height="34" rx="6" fill="#101a22"/><rect x="40" y="80" width="60" height="5" rx="2" fill="#d98a3d"/><rect x="40" y="90" width="90" height="5" rx="2" fill="#8fd6c1"/></svg>
+      <div class="step-num">STEP 01</div>
+      <h3>Read the theory &amp; code</h3>
+      <p>A plain-language explanation of the concept, followed by runnable Python reference code and the output to expect.</p>
+    </div>
+    <div class="step">
+      <svg class="step-art" viewBox="0 0 220 130"><rect x="14" y="10" width="192" height="110" rx="10" fill="#f1efe7" stroke="#ddd7c6"/><circle cx="70" cy="90" r="5" fill="#2f8f74"/><circle cx="95" cy="60" r="5" fill="#2f8f74"/><circle cx="130" cy="80" r="5" fill="#d98a3d"/><circle cx="150" cy="45" r="5" fill="#d98a3d"/><path d="M40 100 L180 30" stroke="#1f6a56" stroke-width="2.5" fill="none"/></svg>
+      <div class="step-num">STEP 02</div>
+      <h3>Run the interactive demo</h3>
+      <p>Add data points, tune parameters, and watch the algorithm respond live — right in the browser, no setup.</p>
+    </div>
+    <div class="step">
+      <svg class="step-art" viewBox="0 0 220 130"><rect x="14" y="10" width="192" height="110" rx="10" fill="#f1efe7" stroke="#ddd7c6"/><circle cx="110" cy="65" r="38" fill="none" stroke="#2f8f74" stroke-width="3" stroke-dasharray="8,6"/><path d="M92 65 l12 12 l24 -28" stroke="#1f6a56" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="step-num">STEP 03</div>
+      <h3>Check your understanding</h3>
+      <p>Key-points summaries reinforce the intuition after every experiment, ready for lab writeups or viva questions.</p>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="about">
+  <div class="split">
+    <div>
+      <div class="section-kicker">WHY A VIRTUAL LAB</div>
+      <h2>Built for a classroom, not a browser tab you forget about.</h2>
+      <p>Traditional ML labs live in scattered notebooks and slide decks. This lab keeps the reference code, the theory, and a working demo of every algorithm together on one page — so students can revisit any experiment at exam time without hunting for the original files.</p>
+      <ul>
+        <li>Works entirely offline once loaded — no server, no installs</li>
+        <li>Every algorithm runs client-side in plain JavaScript</li>
+        <li>Deployable for free on GitHub Pages in minutes</li>
+      </ul>
+    </div>
+    <div class="split-art">
+      <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+        <rect x="20" y="20" width="360" height="260" rx="14" fill="#f1efe7" stroke="#ddd7c6"/>
+        <rect x="20" y="20" width="360" height="34" rx="14" fill="#122431"/>
+        <circle cx="40" cy="37" r="5" fill="#d98a3d"/><circle cx="56" cy="37" r="5" fill="#8fd6c1"/><circle cx="72" cy="37" r="5" fill="#2f8f74"/>
+        <rect x="42" y="76" width="140" height="10" rx="3" fill="#2f8f74"/>
+        <rect x="42" y="96" width="200" height="7" rx="3" fill="#c9c2ae"/>
+        <rect x="42" y="112" width="170" height="7" rx="3" fill="#c9c2ae"/>
+        <rect x="42" y="140" width="316" height="110" rx="8" fill="#ffffff" stroke="#ddd7c6"/>
+        <polyline points="60,230 100,190 140,210 180,160 220,175 260,140 300,155 340,120" fill="none" stroke="#1f6a56" stroke-width="3"/>
+        <circle cx="100" cy="190" r="4" fill="#d98a3d"/><circle cx="180" cy="160" r="4" fill="#d98a3d"/><circle cx="260" cy="140" r="4" fill="#d98a3d"/><circle cx="340" cy="120" r="4" fill="#d98a3d"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0;">
+  <div class="cta-band">
+    <h2>Ready to start experimenting?</h2>
+    <p>Jump into the full lab manual — theory, code, and eleven live interactive demos, one click away.</p>
+    <a class="btn-primary" href="lab.html">Open the Lab Manual →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="credit">
+    Developed by <span class="name">Dr. Tahseen A. Mulla</span><br>
+    Associate Professor<br>
+    Department of Computer Science and Engineering [IOT &amp; CSBT]
+  </div>
+  <div class="counter">
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=tahseen-mulla-mllab.landing&left_color=64748b&right_color=2f8f74" alt="visitor counter" />
+  </div>
+  <div class="backlink"><a href="lab.html">← Back to the Lab Manual</a></div>
+</footer>
+
+</body>
+</html>
