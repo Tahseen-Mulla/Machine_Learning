@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Linear Regression Lab</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent2: #1d4ed8;
+      --border: #dbe3ef;
+      --danger: #dc2626;
+      --success: #15803d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: white;
+      padding: 34px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.7rem, 4vw, 2.7rem);
+    }
+
+    header p {
+      margin: 0 auto;
+      max-width: 750px;
+      opacity: 0.92;
+      line-height: 1.55;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 28px auto;
+      padding: 0 16px 30px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(30, 64, 175, 0.06);
+    }
+
+    h2, h3 { margin-top: 0; }
+
+    label {
+      display: block;
+      font-weight: 650;
+      margin: 12px 0 6px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 9px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 10px 13px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      width: 100%;
+      margin-top: 12px;
+      background: var(--accent);
+      color: white;
+    }
+
+    .primary:hover { background: var(--accent2); }
+
+    .secondary {
+      background: #e8eefc;
+      color: #1e3a8a;
+    }
+
+    .danger {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .equation {
+      margin: 16px 0;
+      padding: 15px;
+      border-radius: 12px;
+      background: #eff6ff;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #1e40af;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .stat {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.2rem;
+      margin-top: 4px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 440px;
+      border-radius: 12px;
+      background: white;
+      border: 1px solid var(--border);
+      cursor: crosshair;
+    }
+
+    .hint {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.92rem;
+    }
+
+    .points {
+      max-height: 210px;
+      overflow-y: auto;
+      margin-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .point-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 2px;
+      border-bottom: 1px solid #eef2f7;
+      font-size: 0.92rem;
+    }
+
+    .remove {
+      border: 0;
+      background: transparent;
+      color: var(--danger);
+      padding: 0;
+      font-weight: 700;
+    }
+
+    .prediction-result {
+      margin-top: 10px;
+      min-height: 24px;
+      font-weight: 750;
+      color: var(--success);
+    }
+
+    .concept {
+      margin-top: 20px;
+      line-height: 1.65;
+    }
+
+    .formula-box {
+      padding: 14px;
+      border-left: 4px solid var(--accent);
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 26px 20px 22px;
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+      margin-top: 10px;
+    }
+    footer .credit { font-size: 0.92rem; color: #334155; line-height: 1.6; }
+    footer .credit .name { font-weight: 700; color: #1e293b; }
+    footer .counter { margin-top: 10px; display: flex; justify-content: center; }
+    footer .counter img { height: 20px; border-radius: 4px; }
+
+    @media (max-width: 850px) {
+      .grid { grid-template-columns: 1fr; }
+      canvas { height: 350px; }
+    }
+
+    @media (max-width: 500px) {
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Interactive Linear Regression Lab</h1>
+  <p>
+    Explore how a straight line fits data using the least-squares method.
+    Add points, change the dataset, and observe how the regression equation and R² value respond.
+  </p>
+</header>
+
+<main class="container">
+  <div class="grid">
+    <section class="card">
+      <h2>Dataset Controls</h2>
+      <p class="hint">
+        Enter an X and Y value, or click anywhere inside the graph to add a point.
+      </p>
+
+      <div class="row">
+        <div>
+          <label for="xInput">X value</label>
+          <input id="xInput" type="number" step="any" value="6">
+        </div>
+        <div>
+          <label for="yInput">Y value</label>
+          <input id="yInput" type="number" step="any" value="7">
+        </div>
+      </div>
+
+      <button class="primary" onclick="addPointFromInputs()">Add Data Point</button>
+
+      <div class="button-row">
+        <button class="secondary" onclick="loadExample()">Load Example</button>
+        <button class="secondary" onclick="generateRandom()">Random Data</button>
+        <button class="danger" onclick="clearPoints()">Clear</button>
+      </div>
+
+      <h3 style="margin-top:22px;">Prediction</h3>
+      <label for="predictX">Enter X to predict Y</label>
+      <input id="predictX" type="number" step="any" placeholder="Example: 8">
+      <button class="primary" onclick="predict()">Predict Y</button>
+      <div id="predictionResult" class="prediction-result"></div>
+
+      <h3 style="margin-top:22px;">Data Points</h3>
+      <div id="pointList" class="points"></div>
+    </section>
+
+    <section class="card">
+      <h2>Regression Visualization</h2>
+      <div id="equation" class="equation">ŷ = b₀ + b₁x</div>
+
+      <div class="stats">
+        <div class="stat">Slope (b₁)<strong id="slope">—</strong></div>
+        <div class="stat">Intercept (b₀)<strong id="intercept">—</strong></div>
+        <div class="stat">R² Score<strong id="r2">—</strong></div>
+      </div>
+
+      <canvas id="chart"></canvas>
+      <p class="hint">
+        Blue circles are observed data points. The blue line is the least-squares line of best fit.
+        Dashed vertical lines represent residual errors.
+      </p>
+    </section>
+  </div>
+
+  <section class="card concept">
+    <h2>What is Linear Regression?</h2>
+    <p>
+      Linear regression is a supervised machine learning algorithm used to model the relationship
+      between an input variable <strong>X</strong> and a continuous output variable <strong>Y</strong>.
+      It finds the straight line that best represents the observed data.
+    </p>
+
+    <div class="formula-box">
+      <strong>Regression model:</strong><br>
+      ŷ = b₀ + b₁x<br><br>
+      <strong>b₀</strong> = intercept &nbsp; | &nbsp;
+      <strong>b₁</strong> = slope &nbsp; | &nbsp;
+      <strong>ŷ</strong> = predicted value
+    </div>
+
+    <p>
+      The least-squares method chooses the slope and intercept that minimize the sum of the squared
+      residuals. A residual is the difference between an observed value and the value predicted by
+      the regression line.
+    </p>
+  </section>
+</main>
+
+<footer>
+  <div class="credit">
+    Developed by <span class="name">Dr. Tahseen A. Mulla</span><br>
+    Associate Professor<br>
+    Department of Computer Science and Engineering [IOT &amp; CSBT]
+  </div>
+  <div class="counter">
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=tahseen-mulla-mllab.linear-regression&left_color=64748b&right_color=2563eb" alt="visitor counter" />
+  </div>
+</footer>
+
+<script>
+const canvas = document.getElementById("chart");
+const ctx = canvas.getContext("2d");
+
+let points = [
+  {x:1, y:2},
+  {x:2, y:3},
+  {x:3, y:5},
+  {x:4, y:4},
+  {x:5, y:6}
+];
+
+let model = null;
+let bounds = null;
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+window.addEventListener("resize", resizeCanvas);
+
+function regression(data) {
+  if (data.length < 2) return null;
+
+  const n = data.length;
+  const meanX = data.reduce((s,p) => s+p.x, 0) / n;
+  const meanY = data.reduce((s,p) => s+p.y, 0) / n;
+
+  let numerator = 0;
+  let denominator = 0;
+
+  data.forEach(p => {
+    numerator += (p.x - meanX) * (p.y - meanY);
+    denominator += Math.pow(p.x - meanX, 2);
+  });
+
+  if (Math.abs(denominator) < 1e-12) return null;
+
+  const slope = numerator / denominator;
+  const intercept = meanY - slope * meanX;
+
+  let ssRes = 0;
+  let ssTot = 0;
+
+  data.forEach(p => {
+    const predicted = intercept + slope * p.x;
+    ssRes += Math.pow(p.y - predicted, 2);
+    ssTot += Math.pow(p.y - meanY, 2);
+  });
+
+  const r2 = ssTot === 0 ? 1 : 1 - (ssRes / ssTot);
+  return { slope, intercept, r2 };
+}
+
+function calculateBounds() {
+  let xs = points.map(p => p.x);
+  let ys = points.map(p => p.y);
+
+  if (!xs.length) {
+    return {minX:0, maxX:10, minY:0, maxY:10};
+  }
+
+  if (model) {
+    const rawMinX = Math.min(...xs);
+    const rawMaxX = Math.max(...xs);
+    ys.push(
+      model.intercept + model.slope * rawMinX,
+      model.intercept + model.slope * rawMaxX
+    );
+  }
+
+  let minX = Math.min(...xs);
+  let maxX = Math.max(...xs);
+  let minY = Math.min(...ys);
+  let maxY = Math.max(...ys);
+
+  if (minX === maxX) { minX -= 1; maxX += 1; }
+  if (minY === maxY) { minY -= 1; maxY += 1; }
+
+  const xPad = Math.max((maxX-minX)*0.15, 1);
+  const yPad = Math.max((maxY-minY)*0.15, 1);
+
+  return {
+    minX: minX-xPad,
+    maxX: maxX+xPad,
+    minY: minY-yPad,
+    maxY: maxY+yPad
+  };
+}
+
+function draw() {
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+  ctx.clearRect(0, 0, w, h);
+
+  model = regression(points);
+  bounds = calculateBounds();
+
+  const margin = {left:55, right:20, top:20, bottom:45};
+  const plotW = w - margin.left - margin.right;
+  const plotH = h - margin.top - margin.bottom;
+
+  const toX = x => margin.left + ((x-bounds.minX)/(bounds.maxX-bounds.minX))*plotW;
+  const toY = y => margin.top + plotH - ((y-bounds.minY)/(bounds.maxY-bounds.minY))*plotH;
+
+  // Grid
+  ctx.strokeStyle = "#e5e7eb";
+  ctx.lineWidth = 1;
+  ctx.font = "12px sans-serif";
+  ctx.fillStyle = "#64748b";
+
+  const ticks = 6;
+
+  for(let i=0;i<=ticks;i++) {
+    const px = margin.left + (plotW/ticks)*i;
+    const xVal = bounds.minX + ((bounds.maxX-bounds.minX)/ticks)*i;
+
+    ctx.beginPath();
+    ctx.moveTo(px, margin.top);
+    ctx.lineTo(px, margin.top+plotH);
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillText(xVal.toFixed(1), px, h-18);
+  }
+
+  for(let i=0;i<=ticks;i++) {
+    const py = margin.top + (plotH/ticks)*i;
+    const yVal = bounds.maxY - ((bounds.maxY-bounds.minY)/ticks)*i;
+
+    ctx.beginPath();
+    ctx.moveTo(margin.left, py);
+    ctx.lineTo(margin.left+plotW, py);
+    ctx.stroke();
+
+    ctx.textAlign = "right";
+    ctx.fillText(yVal.toFixed(1), margin.left-8, py+4);
+  }
+
+  // Axes
+  ctx.strokeStyle = "#334155";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(margin.left, margin.top);
+  ctx.lineTo(margin.left, margin.top+plotH);
+  ctx.lineTo(margin.left+plotW, margin.top+plotH);
+  ctx.stroke();
+
+  // Residuals
+  if(model) {
+    ctx.save();
+    ctx.setLineDash([5,5]);
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.5;
+
+    points.forEach(p => {
+      const predictedY = model.intercept + model.slope*p.x;
+      ctx.beginPath();
+      ctx.moveTo(toX(p.x), toY(p.y));
+      ctx.lineTo(toX(p.x), toY(predictedY));
+      ctx.stroke();
+    });
+
+    ctx.restore();
+
+    // Regression line
+    const x1 = bounds.minX;
+    const x2 = bounds.maxX;
+    const y1 = model.intercept + model.slope*x1;
+    const y2 = model.intercept + model.slope*x2;
+
+    ctx.strokeStyle = "#2563eb";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(toX(x1), toY(y1));
+    ctx.lineTo(toX(x2), toY(y2));
+    ctx.stroke();
+  }
+
+  // Points
+  points.forEach(p => {
+    ctx.fillStyle = "#1d4ed8";
+    ctx.beginPath();
+    ctx.arc(toX(p.x), toY(p.y), 6, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+
+  updateModelDisplay();
+}
+
+function updateModelDisplay() {
+  const equation = document.getElementById("equation");
+
+  if(!model) {
+    equation.textContent = points.length < 2
+      ? "Add at least two points"
+      : "X values must not all be identical";
+    document.getElementById("slope").textContent = "—";
+    document.getElementById("intercept").textContent = "—";
+    document.getElementById("r2").textContent = "—";
+    return;
+  }
+
+  const sign = model.intercept >= 0 ? "+" : "−";
+  equation.textContent =
+    `ŷ = ${model.slope.toFixed(3)}x ${sign} ${Math.abs(model.intercept).toFixed(3)}`;
+
+  document.getElementById("slope").textContent = model.slope.toFixed(3);
+  document.getElementById("intercept").textContent = model.intercept.toFixed(3);
+  document.getElementById("r2").textContent = model.r2.toFixed(3);
+}
+
+function renderPointList() {
+  const list = document.getElementById("pointList");
+
+  if(!points.length) {
+    list.innerHTML = '<p class="hint">No points added.</p>';
+    return;
+  }
+
+  list.innerHTML = points.map((p,i) => `
+    <div class="point-item">
+      <span>Point ${i+1}: (${round(p.x)}, ${round(p.y)})</span>
+      <button class="remove" onclick="removePoint(${i})">Remove</button>
+    </div>
+  `).join("");
+}
+
+function round(v) {
+  return Math.round(v*100)/100;
+}
+
+function refresh() {
+  renderPointList();
+  draw();
+}
+
+function addPointFromInputs() {
+  const x = parseFloat(document.getElementById("xInput").value);
+  const y = parseFloat(document.getElementById("yInput").value);
+
+  if(Number.isFinite(x) && Number.isFinite(y)) {
+    points.push({x,y});
+    refresh();
+  }
+}
+
+function removePoint(index) {
+  points.splice(index,1);
+  document.getElementById("predictionResult").textContent = "";
+  refresh();
+}
+
+function clearPoints() {
+  points = [];
+  document.getElementById("predictionResult").textContent = "";
+  refresh();
+}
+
+function loadExample() {
+  points = [
+    {x:1,y:2},
+    {x:2,y:3},
+    {x:3,y:5},
+    {x:4,y:4},
+    {x:5,y:6},
+    {x:6,y:7},
+    {x:7,y:8.5}
+  ];
+  document.getElementById("predictionResult").textContent = "";
+  refresh();
+}
+
+function generateRandom() {
+  points = [];
+  const slope = 0.7 + Math.random()*1.7;
+  const intercept = Math.random()*4-2;
+
+  for(let x=1; x<=10; x++) {
+    const noise = (Math.random()-0.5)*4;
+    points.push({x, y: intercept + slope*x + noise});
+  }
+
+  document.getElementById("predictionResult").textContent = "";
+  refresh();
+}
+
+function predict() {
+  const x = parseFloat(document.getElementById("predictX").value);
+  const result = document.getElementById("predictionResult");
+
+  if(!model) {
+    result.textContent = "Create a valid regression model first.";
+    return;
+  }
+
+  if(!Number.isFinite(x)) {
+    result.textContent = "Please enter a valid X value.";
+    return;
+  }
+
+  const y = model.intercept + model.slope*x;
+  result.textContent = `For X = ${round(x)}, predicted Y = ${y.toFixed(3)}`;
+}
+
+canvas.addEventListener("click", function(event) {
+  if(!bounds) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = event.clientX - rect.left;
+  const my = event.clientY - rect.top;
+
+  const margin = {left:55, right:20, top:20, bottom:45};
+  const plotW = rect.width - margin.left - margin.right;
+  const plotH = rect.height - margin.top - margin.bottom;
+
+  if(mx < margin.left || mx > margin.left+plotW ||
+     my < margin.top || my > margin.top+plotH) return;
+
+  const x = bounds.minX + ((mx-margin.left)/plotW)*(bounds.maxX-bounds.minX);
+  const y = bounds.maxY - ((my-margin.top)/plotH)*(bounds.maxY-bounds.minY);
+
+  points.push({x, y});
+  refresh();
+});
+
+renderPointList();
+requestAnimationFrame(resizeCanvas);
+</script>
+</body>
+</html>
